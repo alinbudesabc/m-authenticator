@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Factor Authentication</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>Two-Factor Authentication</h1>
+<form id="tfaForm">
+    <label for="tfaCode">Enter Authentication Code:</label>
+    <input type="text" id="tfaCode" name="tfaCode" required>
+    <button type="button" onclick="verifyTFA()">Verify</button>
+</form>
+
+<div id="error" style="color: red; display: none;"></div>
+
+<script>
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    function verifyTFA() {
+        const tfaCode = $('#tfaCode').val();
+        // const jwtToken = localStorage.getItem("jwtToken");
+        const username = getQueryParam("username");
+
+        $.ajax({
+            type: "POST",
+            url: "/2fa/validate", // Backend endpoint for verifying 2FA code
+            contentType: 'application/json',
+            data: JSON.stringify({ username: username, tfaCode: tfaCode }),
+            headers: {
+                Authorization: `${jwtToken}` // Include the JWT token in the headers
+            },
+            success: function (response) {
+                debugger;
+                alert("Two-Factor Authentication successful!");
+                localStorage.setItem("jwtToken", response.jwtToken)
+                window.location.href = "/dashboard.html"; // Redirect to dashboard or another page
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr)
+                $('#error').text(xhr.responseText).show();
+                console.error("Error:", error);
+            }
+        });
+    }
+</script>
+</body>
+</html>

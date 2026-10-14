@@ -1,0 +1,188 @@
+body {
+    background-color: #f8f9fa;
+    /*padding-top: 80px;*/
+}
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #212529;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    height: 40px;
+    border-radius: 50px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+.profile-badge img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    /*margin-right: 8px;*/
+}
+.profile-badge:hover {
+    background-color: #e9ecef;
+    text-decoration: none;
+}
+/*#logout {*/
+/*    width: 30px;*/
+/*    height: 30px;*/
+/*}*/
+
+.logout-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /*width: 140px;*/
+    height: 40px;
+    border-radius: 50px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #212529;
+    transition: all 0.3s ease;
+}
+
+.logout-badge:hover {
+    background-color: #e9ecef;
+    cursor: pointer;
+}
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    background-color: #343a40;
+    padding-top: 60px;
+}
+.sidebar a {
+    color: #fff;
+    padding: 15px;
+    text-decoration: none;
+    display: block;
+}
+.sidebar a:hover {
+    background-color: #495057;
+}
+.content {
+    margin-left: 250px;
+    padding: 20px;
+}
+
+
+/*TWO FACTOR SECTION*/
+
+.profile-container {
+    max-width: 600px;
+    margin: 50px auto;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4caf50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+
+/*elements of switch div*/
+
+.align-items {
+    display: flex; /* Use Flexbox for layout */
+    justify-content: space-between; /* Push items to extreme ends */
+    align-items: center; /* Vertically align items to the center */
+}
+
+.form-label {
+    margin: 0; /* Ensure no extra margins */
+    font-size: 1rem; /* Adjust font size if necessary */
+}
+
+.switch {
+    display: inline-flex; /* Keep the switch inline */
+    align-items: center; /* Align the switch to the middle */
+}
+
+.blur {
+    filter: blur(5px);
+    pointer-events: none; /* disables mouse interaction */
+    user-select: none;     /* disables text selection */
+}
+
+#page-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4); /* dark transparent background */
+    display: none;
+    z-index: 100;
+}
+.card {
+    min-height: 270px; /* Ensures uniform height if cards differ slightly */
+}
+#settings {
+    padding-top: 80px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/*.alert-banner {*/
+/*    position: fixed;*/
+/*    top: 0;*/
+/*    left: 0;*/
+/*    width: 100%;*/
+/*    padding: 1rem;*/
+/*    text-align: center;*/
+/*    z-index: 9999;*/
+/*    font-weight: bold;*/
+/*    font-size: 1rem;*/
+/*}*/

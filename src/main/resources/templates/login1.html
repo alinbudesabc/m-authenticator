@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="/style/style.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div id="success" th:if="${message == 'validToken'}" class="success-alert">
+    Your password has been successfully reset. Please log in with your new password.
+</div>
+
+<div id="fail" th:if="${message != 'validToken' and message != null}" class="error-alert">
+    Invalid or expired token. Please try again.
+</div>
+
+<!--<form th:action="@{/basicAuth}" method="post">-->
+<!--    <label for="username">Username</label>-->
+<!--    <input type="text" id="username" name="username" autofocus="autofocus" required>-->
+<!--    <label for="password">Password</label>-->
+<!--    <input type="password" id="password" name="password" required>-->
+<!--    <button type="submit">Login</button>-->
+<!--</form>-->
+<form id="loginForm">
+    <div>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="button" onclick="loginUser()">Login</button>
+</form>
+
+
+
+<a th:href="@{/forgotPassword}">Forgot Password?</a>
+
+<script type="application/javascript" th:inline="javascript">
+    // debugger;
+    // let val1 = $('#success').text();
+    // let val2 = $('#fail').text();
+    // console.log(val1);
+    // console.log(val2);
+    // let message = /*[[${message}]]*/ 'default';
+    // console.log("Message:", message);
+     console.log("Message:test");
+
+    function loginUser() {
+        const username = $('#username').val(); // Get username from the form
+        const password = $('#password').val(); // Get password from the form
+        console.log(JSON.stringify({ username: username, password: password }));
+        $.ajax({
+            type: "POST",
+            url: "/basicAuth", // Replace with your actual backend endpoint
+            contentType: 'application/json',
+            data: JSON.stringify({ username: username, password: password }),
+            success: function (response) {
+                alert("Login successful!");
+                console.log(response);
+                // You can redirect to another page or update the UI here
+            },
+            error: function (xhr, status, error) {
+                alert("Login failed. Please check your credentials.");
+                console.error("Error:", error);
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (Optional, for icons) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!--    style-->
+    <link rel="stylesheet" type="text/css" href="/style/dashboardCss.css"/>
+    <script src="js/requestHeaders.js"></script>
+    <script src="js/secureFetch.js"></script>
+</head>
+<body>
+<!-- Alert Banner -->
+<div id="alertBanner" class="alert alert-dismissible fade show text-center m-0 rounded-0" style="display: none; width: 100%; position: fixed; top: 56px; z-index: 1050;">
+    <span id="alertMessage"></span>
+    <button type="button" class="btn-close position-absolute end-0 me-3" aria-label="Close" onclick="hideAlert()"></button>
+</div>
+
+<!-- Header -->
+<header class="bg-light shadow-sm fixed-top py-2">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <h1 class="fs-4 mb-0">Dashboard</h1>
+        <div class="d-flex align-items-center gap-2">
+            <button onclick="logoutUser()" class="btn logout-badge">
+                <i id = "logout" class="bi bi-box-arrow-right me-1"></i> Logout
+            </button>
+            <a href="#profile" class="profile-badge">
+                <img src="/pics/user_login.png" alt="User Profile">
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="sidebar">
+    <a href="#dashboard" class="active" onclick="showSection('dashboard')"><i class="bi bi-house-door me-2"></i> Dashboard</a>
+    <a href="#settings" onclick="showSection('settings')"><i class="bi bi-gear me-2"></i> Settings</a>
+    <a href="#reports" onclick="showSection('reports')"><i class="bi bi-bar-chart me-2"></i> Reports</a>
+    <a href="#twofactor" onclick="showSection('twofactor')"><i class="bi bi-phone"></i> Two-Factor Authentication</a>
+    <a href="#help" onclick="showSection('help')"><i class="bi bi-question-circle me-2"></i> Help</a>
+</div>
+<!-- Main Content -->
+<div class="content">
+    <div id="dashboard" class="section">
+        <h2>Welcome to the Dashboard</h2>
+        <p>Here is an overview of the dashboard.</p>
+    </div>
+
+<!--    container-fluid keeps it flexible across screen sizes.-->
+<!--    row g-4 creates a responsive grid with gutters (g-4 = spacing).-->
+<!--    Each card is wrapped in col-12 col-sm-6 col-md-4:-->
+<!--    1 card per row on mobile,-->
+<!--    2 on small screens (≥576px),-->
+<!--    3 on medium and up (≥768px).-->
+    <div id="settings" class="section container-fluid" style="display: none;">
+        <div class="row g-4">
+            <!-- Enable User Card -->
+            <div class="col-12 col-sm-6 col-md-4">
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3 text-center">Enable User Account</h4>
+
+                    <div class="mb-3">
+                        <label for="usernameInput" class="form-label">Username</label>
+                        <input type="text" class="form-control form-control-sm" id="usernameInput" placeholder="e.g. johndoe">
+                    </div>
+
+                    <button id="enableAccountBtn" class="btn btn-primary w-100">Enable Account</button>
+
+                    <div id="enableMessage" class="mt-3"></div>
+                </div>
+            </div>
+<!--            future cards here-->
+            <div class="col-12 col-sm-6 col-md-4">
+              <div class="card shadow-sm p-4">
+                <h4 class="mb-3 text-center">Another Setting</h4>
+                <p>More settings here...</p>
+              </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="reports" class="section" style="display: none;">
+        <h3>Reports</h3>
+        <p>Generate and view reports here.</p>
+    </div>
+    <div id="twofactor" class="section" style="display: none;">
+        <p>Manage your two-factor authentication settings here.</p>
+        <div class="container profile-container">
+            <h2 class="text-center">Two-Factor Settings</h2>
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text"><strong>Email:</strong> <span id="card_email"></span></p>
+                    <p style="display: none;"> <span id="card_username"></span></p>
+
+
+                    <div class="mt-4 align-items">
+                        <label for="twoFactorSwitch" class="form-label">
+                            <strong>Enable Two-Factor Authentication</strong>
+                        </label>
+                        <label class="switch">
+                            <input type="checkbox" id="twoFactorSwitch">
+                            <span class="slider"></span>
+                        </label>
+                        <button id="updateTwoFactorBtn" class="btn btn-primary ml-3">Update 2FA</button>
+                    </div>
+                    <div id="qrCodeSection" class="mt-4 d-none">
+                        <h6>Scan the QR Code in Google Authenticator</h6>
+                        <div id="qrCode">
+                            <img id="qrImage" alt="QR Code" />
+                        </div>
+
+                        <p class="text-muted">Enter the 6-digit code from Google Authenticator to verify.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="help" class="section" style="display: none;">
+        <h3>Help</h3>
+        <p>Need assistance? Contact support or check the FAQs.</p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.onload = function () {
+        const token = localStorage.getItem("jwtToken");
+        if (!token) {
+            // alert("You must be logged in to access this page.");
+            window.location.href = "/login2.html";
+        }
+    }
+
+    $(document).ready(function () {
+
+        $("#enableAccountBtn").click(function () {
+            showAlert("Account enabled successfully!", "success");
+        });
+
+        $('#updateTwoFactorBtn').click(function () {
+            // const jwtToken = localStorage.getItem("jwtToken");
+
+            // Check if the switch is enabled or disabled
+            const isTwoFactorEnabled = $('#twoFactorSwitch').is(':checked');
+
+            if (isTwoFactorEnabled) {
+                $('#qrCodeSection').removeClass('d-none'); // Show QR code section if enabled
+                generateQRCode(); // Trigger QR code generation if enabled
+            } else {
+                disableTfa();
+                $('#qrCodeSection').addClass('d-none'); // Hide QR code section if disabled
+            }
+        });
+    });
+
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.section').forEach((section) => {
+            section.style.display = 'none';
+        });
+
+        // Show the selected section
+        document.getElementById(sectionId).style.display = 'block';
+
+        // Update active class in the sidebar
+        document.querySelectorAll('.sidebar a').forEach((link) => {
+            link.classList.remove('active');
+        });
+        document.querySelector(`.sidebar a[href="#${sectionId}"]`).classList.add('active');
+
+        if (sectionId === 'twofactor') {
+            fetchAndDisplayUserData();
+        }
+    }
+
+    function fetchAndDisplayUserData() {
+        const jwtToken = localStorage.getItem("jwtToken");
+        const headers = buildCommonHeaders(null, {
+            Authorization: `${jwtToken}`,
+            "Content-Type": "application/json",
+        })
+
+        // Fetch user data from backend
+        fetch("/twofactor/settings", {
+            method: "GET",
+            headers
+        })
+            .then(async response => {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    error.response = response;
+                    error.body = errorText;
+                    throw error;
+                }
+                return response.json();
+            })
+            .then(data => {
+                //debugger
+                // Populate the fields with user data
+                document.getElementById("card_username").textContent = data.username;
+                document.getElementById("card_email").textContent = data.email;
+                // Set the checkbox based on twoFactorEnabled
+                const twoFactorSwitch = document.getElementById("twoFactorSwitch");
+                twoFactorSwitch.checked = data.twoFactorEnabled;
+
+                // Ensure the Two-Factor Authentication section is shown
+                document.querySelectorAll(".content > div").forEach(div => div.style.display = "none"); // Hide all sections
+                document.getElementById("twofactor").style.display = "block"; // Show the Two-Factor section
+            })
+            .catch(error => {
+                console.error("Custom Error Message:", error.message);
+                if (error.response) {
+                    console.error("Status:", error.response.status);
+                    console.error("Response Object:", error.response);
+                    console.error("Response Body:", error.body);
+                } else {
+                    console.error("Network or JS Error:", error);
+                }
+                alert("Failed to load user data. See console for details.");
+                showLogoutMessage()
+                logoutUser();
+            });
+    }
+
+    // Function to generate QR code (used when enabling 2FA)
+    function generateQRCode() {
+        // const username = $('#username').text(); // Get username from the DOM
+        // debugger
+        const jwtToken = localStorage.getItem("jwtToken");
+        const headers = buildCommonHeaders(null, {
+            Authorization: `${jwtToken}`,
+            "Content-Type": "application/json",
+        });
+        $.ajax({
+            type: "GET",
+            url: `/qrcode/get`, // Backend endpoint to get QR code
+            contentType: "application/json",
+            headers: headers,
+            success: function (msg) {
+                alert("QR Code generated successfully.");
+                $('#qrImage').attr('src', 'data:image/png;base64,' + msg); // Set QR image source
+            },
+            error: function () {
+                alert("Failed to generate QR code.");
+            }
+        });
+    }
+
+    function logoutUser() {
+        console.log("Removing JWT token...");
+        localStorage.removeItem("jwtToken");
+        setTimeout(() => {
+            console.log("Redirecting to login page...");
+            window.location.href = "/login2.html";
+        }, 2000);
+    }
+
+    function showLogoutMessage() {
+        document.getElementById('page-content').classList.add('blur');
+        document.getElementById('page-content').style.display = 'block';
+        const msg = document.createElement("div");
+        msg.textContent = "Session expired. Redirecting to login...";
+        msg.style.position = "fixed";
+        msg.style.top = "20px";
+        msg.style.left = "50%";
+        msg.style.transform = "translateX(-50%)";
+        msg.style.backgroundColor = "#f44336";
+        msg.style.color = "white";
+        msg.style.padding = "10px 20px";
+        msg.style.zIndex = "9999";
+        document.body.appendChild(msg);
+    }
+
+    function showAlert(message, type = 'success') {
+        const banner = document.getElementById('alertBanner');
+        const messageSpan = document.getElementById('alertMessage');
+
+        messageSpan.textContent = message;
+
+        // Clear existing types
+        banner.classList.remove('alert-success', 'alert-error');
+
+        // Add the new type class
+        banner.classList.add(type === 'error' ? 'alert-error' : 'alert-success');
+
+        banner.style.display = 'block';
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            hideAlert();
+        }, 5000);
+    }
+
+    function hideAlert() {
+        const banner = document.getElementById('alertBanner');
+        banner.style.display = 'none';
+    }
+</script>
+</body>
+</html>

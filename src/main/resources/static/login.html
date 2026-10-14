@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="/style/style.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/requestHeaders.js"></script>
+</head>
+<body>
+
+<div id="success" class="success-alert" style="display: none;">
+    Your password has been successfully reset. Please log in with your new password.
+</div>
+
+<div id="fail" class="error-alert" style="display: none;">
+    Invalid or expired token. Please try again.
+</div>
+
+
+<form id="loginForm">
+    <div>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="button" onclick="loginUser()">Login</button>
+</form>
+
+
+
+<a href="/forgotPassword.html">Forgot Password?</a>
+
+<script type="application/javascript">
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    window.onload = function () {
+        const message = getQueryParam("message");
+        if (message) {
+            const messageElement = document.getElementById("loginMessage");
+
+            messageElement.textContent = message === "validToken" ?
+                $('#success').show() : $('#fail').show();
+        }
+    };
+
+    function loginUser() {
+        const username = $('#username').val(); // Get username from the form
+        const password = $('#password').val(); // Get password from the form
+
+
+        $.ajax({
+            type: "POST",
+            url: "/login",
+            contentType: 'application/json',
+            data: JSON.stringify({ username: username, password: password }),
+            beforeSend: function (xhr){
+                buildCommonHeaders(xhr)
+            },
+            success: function (response) {
+                console.log("Response:", response);
+
+                // const { status, jwtToken, message } = response;
+                console.log("Debugger should stop here");
+                // debugger;
+                if (response.status === 200) {
+                    $('#success').text(response.message || "Login successful!").show();
+                    $('#fail').hide();
+                    // localStorage.setItem("jwtToken", response.jwtToken);
+                    console.log("JWT Token:", response.jwtToken);
+                    // redirect to 2fa if basic auth succeeded and tfa enabled
+                    if(response.tfaEnabled){
+                        alert("Two-Factor Authentication is required. Redirecting...");
+                        window.location.href = "/tfa.html?username=" + encodeURIComponent(username);
+                    } else {
+                        alert("Login successful without Two-Factor Authentication!");
+                        localStorage.setItem("jwtToken", response.jwtToken);
+                        window.location.href = "/dashboard.html";
+                    }
+                } else {
+                    $('#fail').text(response.message || "Invalid or expired token.").show();
+                    $('#success').hide();
+                }
+            },
+            error: function (xhr, status, error) {
+                 $('#success').hide();
+                let errorMessage = "Login failed. Please check your credentials.";
+                try {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    if (responseJson && responseJson.message) {
+                        errorMessage = responseJson.message;
+                    }
+                } catch (e) {
+                    console.warn("Could not parse error response:", e);
+                }
+
+                $('#fail').text(errorMessage).show();
+
+                console.error("HTTP Status:", xhr.status);
+                console.error("Error message:", errorMessage);
+                console.error("Raw response:", xhr.responseText);
+            }
+        });
+    }
+</script>
+</body>
+</html>

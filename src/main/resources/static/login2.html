@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Portal</title>
+    <link rel="stylesheet" type="text/css" href="/style/styleLogin.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/requestHeaders.js"></script>
+</head>
+<!-- https://www.youtube.com/watch?v=phWxA89Dy94 -->
+<!-- https://www.youtube.com/watch?v=4Wum7fsSKm8 -->
+<!--https://www.youtube.com/watch?v=4Wum7fsSKm8-->
+<body>
+<div id="alertBanner" class="alert-banner" style="display: none;"></div>
+
+    <div class="form-container">
+        <div id="formTitle" class="title-bar">Login</div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="form-window">
+            <form>
+                <label>Username <input type="text" id="usernameInput" placeholder="Enter your username" required /></label>
+                <label>Password <input type="password" id="passwordInput" placeholder="Enter your password" required /></label>
+                <div class="buttons">
+                    <button id="loginBtn" type="button">Login</button>
+                </div>
+            </form>
+            <div class="form-links">
+                <a href="#" onclick="toggleForm('forgot')">Forgot Password?</a>
+                <a href="#" onclick="toggleForm('register')">Don't have an account? Register</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="form-window">
+            <form>
+                <label>Name <input type="text" placeholder="Enter your name" required /></label>
+                <label>Email <input type="email" placeholder="Enter your email" required /></label>
+                <label>Password <input type="password" placeholder="Enter your password" required /></label>
+                <label>Confirm Password <input type="password" placeholder="Confirm your password" required /></label>
+                <div class="buttons">
+                    <button type="submit">Register</button>
+                </div>
+            </form>
+            <div class="form-links">
+                <a href="#" onclick="toggleForm('login')">Already have an account? Login</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgotPasswordForm" class="form-window">
+            <form>
+                <label>Email <input id="emailFromFGP" type="email" placeholder="Enter your email" required /></label>
+                <div class="buttons">
+                    <button id="forgotPassButton" type="submit">Submit</button>
+                </div>
+            </form>
+            <div class="form-links">
+                <a href="#" onclick="toggleForm('login')">Back to Login</a>
+            </div>
+            <p id="messageParagraph" aria-live="polite"></p>
+        </div>
+    </div>
+<script>
+
+    $(document).ready(function () {
+        toggleForm('login');
+
+        //START-------------------------QUERY PARAMS SECTION START--------------------------
+        //if we receive a message in the url we show it
+        //ex: resetPassword page sends string "passResetOK" if password has successfully changed
+        const message = getQueryParam("message");
+        const alertBanner = document.getElementById("alertBanner");
+        if (message) {
+            if (message === "passResetOK") {
+                alertBanner.textContent = "Your password has been successfully reset. Please log in with your new password.";
+                alertBanner.className = "alert-banner alert-success";
+            } else {
+                alertBanner.textContent = "Invalid or expired token. Please try again.";
+                alertBanner.className = "alert-banner alert-error";
+            }
+
+            alertBanner.style.display = "block";
+
+            // Optional: auto-hide after x seconds
+            setTimeout(() => {
+                alertBanner.style.display = "none";
+            }, 10000);
+        }
+
+        $('#loginBtn').on('click', function (e) {
+            // e.preventDefault();
+            loginUser();
+        });
+
+        $('#forgotPasswordForm').on('submit', async function (e) {
+            e.preventDefault();
+            const email = $('#emailFromFGP').val().trim();
+            const messageParagraph = $('#messageParagraph');
+            const submitButton = $('#forgotPassButton');
+
+            console.log("no email filled:" + !email);
+            console.log(email);
+            if (!email) {
+                messageParagraph.text("Please enter your email.").css("color", "red");
+                return;
+            }
+
+            submitButton.prop("disabled", true);
+            messageParagraph.text("Sending reset request...").css("color", "gray");
+
+            try {
+                const response = await fetch("/forgotPassword", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ email }),
+                });
+                const messageJson = await response.json();
+                console.log("RESPONSE")
+                console.log(messageJson)
+                console.log("Message paragraph: ")
+                console.log(messageParagraph)
+                debugger
+                if (response.ok) {
+                    messageParagraph.text(messageJson.message || "Check your email.").css("color", "green");
+                    $(this).trigger("reset");// Clear form inputs
+                } else {
+                    messageParagraph.text(messageJson.message).css("color", "red");
+                    messageParagraph.css("display", "block");
+                    // err: object is a jquery so it doesn't have style(just vanilla js selectors has it)
+                    // messageParagraph.style.display="block";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageParagraph.text("JS error.").css("color", "red");
+            } finally {
+                submitButton.prop("disabled", false);
+            }
+        });
+    });
+
+
+    function toggleForm(formType) {
+        const forms = {
+            login: document.getElementById("loginForm"),
+            register: document.getElementById("registerForm"),
+            forgot: document.getElementById("forgotPasswordForm")
+        };
+        Object.values(forms).forEach(f => f.style.display = "none");
+        if (formType === "login") {
+            forms.login.style.display = "block";
+            document.getElementById("formTitle").innerText = "Login";
+        } else if (formType === "register") {
+            forms.register.style.display = "block";
+            document.getElementById("formTitle").innerText = "Register";
+        } else if (formType === "forgot") {
+            forms.forgot.style.display = "block";
+            document.getElementById("formTitle").innerText = "Forgot Password";
+        }
+    }
+
+
+    function loginUser() {
+        const username = $('#usernameInput').val();
+        const password = $('#passwordInput').val();
+        $.ajax({
+            type: "POST",
+            url: "/login",
+            contentType: 'application/json',
+            data: JSON.stringify({ username: username, password: password }),
+            beforeSend: function (xhr){
+                buildCommonHeaders(xhr)
+            },
+            success: function (response) {
+                console.log("Response:", response);
+                debugger
+                if (response.status === 200) {
+                    $('#fail').hide();
+                    console.log("JWT Token:", response.jwtToken);
+                    // redirect to 2fa if basic auth succeeded and tfa enabled
+                    if(response.tfaEnabled){
+                        alert("Two-Factor Authentication is required. Redirecting...");
+
+                        // setTimeout(() => {
+                            // alertBanner.style.display = "none";
+                            window.location.href = "/tfa.html?username=" + encodeURIComponent(username);
+                        // }, 10000);
+
+                    } else {
+                        const alertBanner = document.getElementById("alertBanner");
+                        alertBanner.textContent = "Login successful without Two-Factor Authentication!";
+                        alertBanner.style.display = "block";
+                        localStorage.setItem("jwtToken", response.jwtToken);
+                        localStorage.setItem("refreshToken", response.refreshToken);
+                        setTimeout(() => {
+                            window.location.href = "/dashboard.html";
+                        }, 1000);
+                    }
+                } else {
+                    const alertBanner = document.getElementById("alertBanner");
+                    alertBanner.textContent = response.message || "Invalid or expired token.";
+                }
+            },
+            error: function (xhr, status, error) {
+                // $('#success').hide();
+                let errorMessage = "Login failed. Please check your credentials.";
+
+                try {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    if (responseJson && responseJson.message) {
+                        errorMessage = responseJson.error;
+                        const alertBanner = document.getElementById("alertBanner");
+                        alertBanner.textContent = responseJson.message || errorMessage;
+                        alertBanner.className = "alert-banner alert-error";
+                        alertBanner.style.display = "block";
+
+                    }
+                } catch (e) {
+                    console.warn("Could not parse error response:", e);
+                }
+                console.error("HTTP Status:", xhr.status);
+                console.error("Error message:", errorMessage);
+                console.error("Raw response:", xhr.responseText);
+            }
+        });
+    }
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+</script>
+</body>
+
+</html>
